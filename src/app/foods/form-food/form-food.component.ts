@@ -13,18 +13,19 @@ import {MatButton} from "@angular/material/button";
   styleUrl: './form-food.component.css'
 })
 export class FormFoodComponent {
-  name = new FormControl([Validators.maxLength(20), Validators.required]);
-
+  //name = new FormControl([Validators.maxLength(20), Validators.required]);
+  name = new FormControl('', Validators.required)
+  
   public showValue() {
     if (this.name.hasError('required')) {
       return 'You must enter a value';
-    } else if (this.name.hasError('maxLength')) {
-      return 'Minimo 20 caracteres'
+  //  } else if (this.name.hasError('maxLength')) {
+  //    return 'Minimo 20 caracteres'
     }
     return 'Error';
   }
 
   public changeValue(): void {
-    // this.name.setValue('Pizza de queso')
+     this.name.setValue('Pizza de queso')
   }
 }
