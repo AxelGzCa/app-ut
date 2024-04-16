@@ -1,17 +1,17 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {Component, Inject, inject} from '@angular/core';
 import {
   FormBuilder,
-  FormControl,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButton } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { Food, FoodService } from '../shared';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatButton} from '@angular/material/button';
+import {MatSelectModule} from '@angular/material/select';
+import {Food, FoodService} from "../shared";
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-form-food',
@@ -22,116 +22,126 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
     MatInputModule,
     MatFormFieldModule,
     MatButton,
+    FormsModule,
     MatSelectModule,
-    RouterModule
   ],
   templateUrl: './form-food.component.html',
   styleUrl: './form-food.component.scss'
 })
-export class FormFoodComponent implements OnInit {
+export class FormFoodComponent {
+
   form = this.formBuilder.group({
     name: ['', [Validators.required]],
     description: ['', [Validators.required, Validators.minLength(20)]],
-    image: ['', [Validators.required]],
     category: ['', [Validators.required]],
+    image: ['', [Validators.required]],
     price: ['', [Validators.required, Validators.min(2)]],
   });
-  constructor(private formBuilder: FormBuilder, public serviceFood: FoodService, public router: Router) { }
 
-  fooId: number = -1;
-  edit: boolean = false;
-  activedRoute: ActivatedRoute = inject(ActivatedRoute);
+  constructor(
+    private formBuilder: FormBuilder,
+    public serviceFood: FoodService,
+    public router:Router,
+  ) {}
+
+  foodId:number = -1;
+  edit:boolean = false;
+  activeRoute:ActivatedRoute = inject(ActivatedRoute);
   food?: Food = {
-    id: 0,
     name: '',
-    description: '',
-    image: '',
-    category: '',
-    price: 0
+    description:'',
+    category:'',
+    image:'',
+    price:0
   }
 
-  ngOnInit(): void {
-    if (this.activedRoute.snapshot.params['id']) {
+  ngOnInit(): void{
+    if (this.activeRoute.snapshot.params['id']){
       this.edit = true;
-      this.fooId = Number(this.activedRoute.snapshot.params['id']);
-      console.log(this.fooId);
-      this.food = this.serviceFood.getOne(this.fooId);
-      if (this.food) {
-        this.form.patchValue({
-          name: this.food.name,
-          description: this.food.description,
-          image: this.food.image,
-          category: this.food.category,
-          price: this.food.price.toString()
-        })
-      }
+      this.foodId = Number(this.activeRoute.snapshot.params['id']);
+      console.log(this.foodId);
+      this.serviceFood.getOne(this.foodId).subscribe({
+        next:(value) => (this.updateForm(value)),
+        error:(e) => console.error(e),
+        complete:() => console.info('complete')
+      })
     }
   }
 
-
-  public updateData() {
+  public sendData(){
     if (this.form.status == 'VALID') {
-
-      if (
-        this.name?.value &&
-        this.description?.value &&
-        this.category?.value &&
-        this.image?.value &&
-        this.price?.value
-      ) {
-        let priceNumber = Number(this.price.value)
-        let comida: Food = {
-          id: this.fooId,
-          name: this.name?.value,
-          description: this.description?.value,
-          category: this.category?.value,
-          image: this.image?.value,
+      if(this.getName?.value && this.getDescription?.value && this.getCategory?.value && this.getImage?.value && this.getPrice?.value){
+        let priceNumber = Number(this.getPrice.value)
+        let comida:Food = {
+          name: this.getName?.value,
+          description: this.getDescription?.value,
+          category: this.getCategory?.value,
+          image: this.getImage?.value,
           price: priceNumber
         };
         console.log(comida);
-        this.serviceFood.updateFood(comida);
-        //this.router.navigate(['/food/food-list']);
+        this.serviceFood.addFood(comida).subscribe({
+          next:(value) => (this.food = value),
+          error:(e) => console.error(e),
+          complete:() => console.info('complete')
+        });
+        this.router.navigate(['/food/food-list'])
       }
     }
   }
 
-  public sendData() {
+  public updateForm(food: Food):void {
+    if (food) {
+      this.form.patchValue({
+        name: food.name,
+        category: food.category,
+        description: food.description,
+        image: food.image,
+        price: food.price.toString()
+      })
+    }
+  }
+
+  public updateData(){
     if (this.form.status == 'VALID') {
 
-      if (
-        this.name?.value &&
-        this.description?.value &&
-        this.category?.value &&
-        this.image?.value &&
-        this.price?.value
-      ) {
-        let priceNumber = Number(this.price.value)
-        let comida: Food = {
-          id: 0,
-          name: this.name?.value,
-          description: this.description?.value,
-          category: this.category?.value,
-          image: this.image?.value,
+      if(this.getName?.value && this.getDescription?.value && this.getCategory?.value && this.getImage?.value && this.getPrice?.value){
+        let priceNumber = Number(this.getPrice.value)
+        let comida:Food = {
+          id: this.foodId,
+          name: this.getName?.value,
+          description: this.getDescription?.value,
+          category: this.getCategory?.value,
+          image: this.getImage?.value,
           price: priceNumber
         };
         console.log(comida);
-        this.serviceFood.addFood(comida);
-        this.router.navigate(['/food/food-list']);
+        this.serviceFood.addFood(comida).subscribe({
+          next:(value) => (this.food = value),
+          error:(e) => console.error(e),
+          complete:() => this.router.navigate(['/food/food-list']),
+        });
       }
     }
   }
 
-
-  get name() {
+  get getName() {
     return this.form.get('name');
   }
-  get description() {
+
+  get getDescription() {
     return this.form.get('description');
-  } get image() {
-    return this.form.get('image');
-  } get category() {
+  }
+
+  get getCategory() {
     return this.form.get('category');
-  } get price() {
+  }
+
+  get getImage() {
+    return this.form.get('image');
+  }
+
+  get getPrice() {
     return this.form.get('price');
   }
 }
